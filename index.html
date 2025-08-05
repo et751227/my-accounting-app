@@ -119,7 +119,7 @@
                 data.transactions.forEach(record => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${record.日期}</td>
+                        <td>${new Date(record.日期).toLocaleDateString()}</td>
                         <td>${record.類別}</td>
                         <td>${record.項目}</td>
                         <td>${record.金額}</td>
