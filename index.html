@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的記帳日誌</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .summary { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
+        .summary div { text-align: center; }
+        .summary h3 { margin: 0 0 5px 0; font-size: 16px; color: #555; }
+        .summary p { margin: 0; font-size: 24px; font-weight: bold; }
+        .remaining-amount.positive { color: #28a745; }
+        .remaining-amount.negative { color: #dc3545; }
+        
+        h1 { text-align: center; color: #333; }
+        h2 { margin-top: 30px; color: #333; }
+        
+        form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
+        form button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        form button:hover { background-color: #0056b3; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>我的記帳日誌</h1>
+
+    <div class="summary">
+        <div>
+            <h3>每日預算</h3>
+            <p id="daily-budget-display">載入中...</p>
+        </div>
+        <div>
+            <h3>今日花費</h3>
+            <p id="today-spent-display">載入中...</p>
+        </div>
+        <div>
+            <h3>今日剩餘</h3>
+            <p id="remaining-amount-display" class="remaining-amount">載入中...</p>
+        </div>
+    </div>
+
+    <h2>新增記帳</h2>
+    <form id="accounting-form">
+        <input type="date" id="date" required>
+        <select id="category" required>
+            <option value="">選擇類別</option>
+            <option value="喝">喝</option>
+            <option value="吃">吃</option>
+            <option value="行">行</option>
+            <option value="樂">樂</option>
+        </select>
+        <input type="text" id="item" placeholder="項目" required>
+        <input type="number" id="amount" placeholder="金額" required>
+        <input type="text" id="notes" placeholder="備註">
+        <button type="submit">新增</button>
+    </form>
+
+    <h2>所有紀錄</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>日期</th>
+                <th>類別</th>
+                <th>項目</th>
+                <th>金額</th>
+                <th>備註</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-list">
+            <tr><td colspan="5" style="text-align: center;">載入中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 請將此處的 URL 替換為您在 Apps Script 部署時獲得的 URL
+    const API_URL = 'https://script.google.com/macros/s/AKfyc...Wz/exec'; // 請替換此處
+
+    // DOM 元素
+    const form = document.getElementById('accounting-form');
+    const transactionList = document.getElementById('transaction-list');
+    const dailyBudgetDisplay = document.getElementById('daily-budget-display');
+    const todaySpentDisplay = document.getElementById('today-spent-display');
+    const remainingAmountDisplay = document.getElementById('remaining-amount-display');
+
+    // 載入所有記帳紀錄與每日總結
+    async function fetchTransactions() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            // 更新每日總結區塊
+            dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
+            todaySpentDisplay.textContent = `$${data.today_spent}`;
+            remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
+
+            // 根據剩餘金額顯示顏色
+            remainingAmountDisplay.classList.remove('positive', 'negative');
+            if (data.remaining_amount >= 0) {
+                remainingAmountDisplay.classList.add('positive');
+            } else {
+                remainingAmountDisplay.classList.add('negative');
+            }
+
+            // 清空舊的紀錄
+            transactionList.innerHTML = '';
+            
+            // 渲染新的紀錄
+            if (data.transactions && data.transactions.length > 0) {
+                data.transactions.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.日期}</td>
+                        <td>${record.類別}</td>
+                        <td>${record.項目}</td>
+                        <td>${record.金額}</td>
+                        <td>${record.備註 || ''}</td>
+                    `;
+                    transactionList.appendChild(row);
+                });
+            } else {
+                transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
+            }
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">載入失敗</td></tr>`;
+        }
+    }
+
+    // 處理表單提交
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const newRecord = {
+            日期: document.getElementById('date').value,
+            類別: document.getElementById('category').value,
+            項目: document.getElementById('item').value,
+            金額: parseFloat(document.getElementById('amount').value),
+            備註: document.getElementById('notes').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRecord)
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('新增成功！');
+                form.reset(); // 清空表單
+                fetchTransactions(); // 重新載入紀錄
+            } else {
+                alert(`新增失敗：${result.message}`);
+            }
+
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('新增失敗，請稍後再試。');
+        }
+    });
+
+    // 頁面載入時自動執行
+    window.onload = () => {
+      // 預設日期為今天
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').value = today;
+      
+      fetchTransactions();
+    };
+
+</script>
+
+</body>
+</html>
