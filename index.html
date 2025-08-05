@@ -64,7 +64,10 @@
         <button type="submit">新增</button>
     </form>
 
-    <h2>所有紀錄</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 id="transactions-title">今日紀錄</h2>
+        <button id="toggle-view-button">顯示所有當月紀錄</button>
+    </div>
     <table>
         <thead>
             <tr>
@@ -83,7 +86,7 @@
 
 <script>
     // 請將此處的 URL 替換為您在 Apps Script 部署時獲得的 URL
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec'; // 請替換此處
+    const API_URL = 'https://script.google.com/macros/s/AKfycxHJcgE1V5unNEXnWxbFknHRm4U_J2z9bfTwwXsPU2-jjx3i9KPbWtWbOuWz4K5Rgif/exec';
 
     // DOM 元素
     const form = document.getElementById('accounting-form');
@@ -91,6 +94,12 @@
     const dailyBudgetDisplay = document.getElementById('daily-budget-display');
     const todaySpentDisplay = document.getElementById('today-spent-display');
     const remainingAmountDisplay = document.getElementById('remaining-amount-display');
+    const transactionsTitle = document.getElementById('transactions-title');
+    const toggleViewButton = document.getElementById('toggle-view-button');
+
+    // 全局變數
+    let allTransactions = [];
+    let isShowingToday = true;
 
     // 載入所有記帳紀錄與每日總結
     async function fetchTransactions() {
@@ -98,6 +107,9 @@
             const response = await fetch(API_URL);
             const data = await response.json();
             
+            // 將所有紀錄存入全局變數
+            allTransactions = data.transactions;
+
             // 更新每日總結區塊
             dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
             todaySpentDisplay.textContent = `$${data.today_spent}`;
@@ -111,29 +123,51 @@
                 remainingAmountDisplay.classList.add('negative');
             }
 
-            // 清空舊的紀錄
-            transactionList.innerHTML = '';
-            
-            // 渲染新的紀錄
-            if (data.transactions && data.transactions.length > 0) {
-                data.transactions.forEach(record => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${new Date(record.日期).toLocaleDateString()}</td>
-                        <td>${record.類別}</td>
-                        <td>${record.項目}</td>
-                        <td>${record.金額}</td>
-                        <td>${record.備註 || ''}</td>
-                    `;
-                    transactionList.appendChild(row);
-                });
-            } else {
-                transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
-            }
+            // 預設只顯示今日紀錄
+            displayTransactions('today');
 
         } catch (error) {
             console.error('Error fetching data:', error);
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">載入失敗</td></tr>`;
+        }
+    }
+
+    // 顯示指定紀錄
+    function displayTransactions(filter) {
+        let recordsToShow = [];
+        if (filter === 'today') {
+            const today = new Date().toLocaleDateString();
+            recordsToShow = allTransactions.filter(record => new Date(record.日期).toLocaleDateString() === today);
+            transactionsTitle.textContent = "今日紀錄";
+        } else if (filter === 'month') {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            recordsToShow = allTransactions.filter(record => {
+                const recordDate = new Date(record.日期);
+                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+            });
+            transactionsTitle.textContent = "當月所有紀錄";
+        }
+
+        // 清空舊的紀錄
+        transactionList.innerHTML = '';
+        
+        // 渲染新的紀錄
+        if (recordsToShow && recordsToShow.length > 0) {
+            recordsToShow.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(record.日期).toLocaleDateString()}</td>
+                    <td>${record.類別}</td>
+                    <td>${record.項目}</td>
+                    <td>${record.金額}</td>
+                    <td>${record.備註 || ''}</td>
+                `;
+                transactionList.appendChild(row);
+            });
+        } else {
+            transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
     }
 
@@ -171,12 +205,22 @@
         }
     });
 
+    // 切換顯示模式按鈕
+    toggleViewButton.addEventListener('click', () => {
+        isShowingToday = !isShowingToday;
+        if (isShowingToday) {
+            displayTransactions('today');
+            toggleViewButton.textContent = "顯示所有當月紀錄";
+        } else {
+            displayTransactions('month');
+            toggleViewButton.textContent = "只顯示今日紀錄";
+        }
+    });
+
     // 頁面載入時自動執行
     window.onload = () => {
-      // 預設日期為今天
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('date').value = today;
-      
       fetchTransactions();
     };
 
