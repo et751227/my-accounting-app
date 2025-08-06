@@ -85,8 +85,10 @@
 </div>
 
 <script>
+    // 請將此處的 URL 替換為您在 Apps Script 部署時獲得的 URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
 
+    // DOM 元素
     const form = document.getElementById('accounting-form');
     const transactionList = document.getElementById('transaction-list');
     const dailyBudgetDisplay = document.getElementById('daily-budget-display');
@@ -95,20 +97,25 @@
     const transactionsTitle = document.getElementById('transactions-title');
     const toggleViewButton = document.getElementById('toggle-view-button');
 
+    // 全局變數
     let allTransactions = [];
     let isShowingToday = true;
 
+    // 載入所有記帳紀錄與每日總結
     async function fetchTransactions() {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
             
+            // 將所有紀錄存入全局變數
             allTransactions = data.transactions;
 
+            // 更新每日總結區塊
             dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
             todaySpentDisplay.textContent = `$${data.today_spent}`;
             remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
 
+            // 根據剩餘金額顯示顏色
             remainingAmountDisplay.classList.remove('positive', 'negative');
             if (data.remaining_amount >= 0) {
                 remainingAmountDisplay.classList.add('positive');
@@ -116,6 +123,7 @@
                 remainingAmountDisplay.classList.add('negative');
             }
 
+            // 預設只顯示今日紀錄
             displayTransactions('today');
 
         } catch (error) {
@@ -124,23 +132,24 @@
         }
     }
 
+    // 顯示指定紀錄
     function displayTransactions(filter) {
         let recordsToShow = [];
+        const today = new Date().toISOString().split('T')[0];
+
         if (filter === 'today') {
-            const today = new Date().toISOString().split('T')[0];
             recordsToShow = allTransactions.filter(record => record.日期 === today);
-            transactionsTitle.textContent = "今日紀錄";
+            transactionsTitle.textContent = `今日紀錄`;
         } else if (filter === 'month') {
-            const today = new Date();
-            const currentMonth = today.getMonth() + 1;
-            const currentYear = today.getFullYear();
-            const monthString = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+            const monthString = today.substring(0, 7);
             recordsToShow = allTransactions.filter(record => record.日期.startsWith(monthString));
             transactionsTitle.textContent = "當月所有紀錄";
         }
 
+        // 清空舊的紀錄
         transactionList.innerHTML = '';
         
+        // 渲染新的紀錄
         if (recordsToShow && recordsToShow.length > 0) {
             recordsToShow.forEach(record => {
                 const row = document.createElement('tr');
@@ -158,6 +167,7 @@
         }
     }
 
+    // 處理表單提交
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -179,8 +189,8 @@
             const result = await response.json();
             if (result.status === 'success') {
                 alert('新增成功！');
-                form.reset();
-                fetchTransactions();
+                form.reset(); // 清空表單
+                fetchTransactions(); // 重新載入紀錄
             } else {
                 alert(`新增失敗：${result.message}`);
             }
@@ -191,6 +201,7 @@
         }
     });
 
+    // 切換顯示模式按鈕
     toggleViewButton.addEventListener('click', () => {
         isShowingToday = !isShowingToday;
         if (isShowingToday) {
@@ -202,13 +213,6 @@
         }
     });
 
+    // 頁面載入時自動執行
     window.onload = () => {
       const today = new Date().toISOString().split('T')[0];
-      document.getElementById('date').value = today;
-      fetchTransactions();
-    };
-
-</script>
-
-</body>
-</html>
