@@ -116,13 +116,15 @@
             allTransactions = data.transactions;
             dailyBudget = data.daily_budget;
             
-            // 根據目前的檢視模式，重新渲染頁面
             if (currentViewMode === 'summary') {
                 showDailySummary();
             } else if (currentViewMode === 'month') {
                 updateView('month');
-            } else { // 預設或回到 today
-                updateView(dateInput.value);
+            } else { 
+                // 修正：確保在載入資料後，如果當前模式是today，就顯示今天的紀錄
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+                updateView(today);
             }
 
         } catch (error) {
@@ -160,7 +162,7 @@
         let recordsToShow = [];
         let titleText = '';
 
-        // 恢復原始的表格標題
+        // 修正：在每次進入此函式時，先恢復原始的表格標題
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
@@ -229,7 +231,7 @@
         todaySpentDisplay.textContent = `-`;
         remainingAmountDisplay.textContent = `-`;
 
-        // 修改表格標題來匹配新的欄位
+        // 修正：在進入此函式時，專門設定每日總結的表格標題
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
