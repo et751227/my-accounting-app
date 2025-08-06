@@ -26,6 +26,10 @@
         table, th, td { border: 1px solid #ddd; }
         th, td { padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -66,8 +70,8 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 id="transactions-title">今日紀錄</h2>
-        <div>
-          <button id="show-summary-button" style="display:none;">顯示每日總結</button>
+        <div class="button-group">
+          <button id="show-summary-button">顯示每日總結</button>
           <button id="toggle-view-button">顯示所有當月紀錄</button>
         </div>
     </div>
@@ -110,7 +114,7 @@
             const data = await response.json();
            
             allTransactions = data.transactions;
-            dailySummaries = data.dailySummaries; // 假設後端會回傳這個新資料
+            dailySummaries = data.dailySummaries;
 
             dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
             todaySpentDisplay.textContent = `$${data.today_spent}`;
@@ -123,7 +127,6 @@
                 remainingAmountDisplay.classList.add('negative');
             }
 
-            // 載入完成後，根據當前狀態顯示表格
             updateTableDisplay();
 
         } catch (error) {
@@ -133,7 +136,7 @@
     }
 
     function updateTableDisplay() {
-      if (transactionsTitle.textContent === '每日總結') {
+      if (showSummaryButton.textContent === '顯示所有紀錄') {
         displayDailySummaries();
       } else {
         displayTransactions(isShowingToday ? 'today' : 'month');
@@ -153,7 +156,6 @@
             transactionsTitle.textContent = "當月所有紀錄";
         }
         
-        // 更新表格標題
         tableHeaders.innerHTML = `
             <th>日期</th>
             <th>類別</th>
@@ -183,7 +185,6 @@
     
     function displayDailySummaries() {
         transactionsTitle.textContent = '每日總結';
-        // 更新表格標題以符合每日總結的數據
         tableHeaders.innerHTML = `
             <th>日期</th>
             <th>每日預算</th>
@@ -193,7 +194,6 @@
         
         transactionList.innerHTML = '';
         
-        // 假設後端回傳了一個 dailySummaries 物件
         if (Object.keys(dailySummaries).length > 0) {
             for (const date in dailySummaries) {
                 const summary = dailySummaries[date];
@@ -253,7 +253,6 @@
             displayTransactions('month');
             toggleViewButton.textContent = "只顯示今日紀錄";
         }
-        showSummaryButton.style.display = 'block';
     });
     
     showSummaryButton.addEventListener('click', () => {
