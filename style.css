@@ -1,0 +1,64 @@
+body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+.container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+.summary { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
+.summary div { text-align: center; }
+.summary h3 { margin: 0 0 5px 0; font-size: 16px; color: #555; }
+.summary p { margin: 0; font-size: 24px; font-weight: bold; }
+.remaining-amount.positive { color: #28a745; }
+.remaining-amount.negative { color: #dc3545; }
+
+h1 { text-align: center; color: #333; }
+h2 { margin: 0; padding: 0; color: #333; font-size: 1.5em; }
+
+form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
+form button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+form button:hover { background-color: #0056b3; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+table, th, td { border: 1px solid #ddd; }
+th, td { padding: 12px; text-align: left; }
+th { background-color: #f2f2f2; }
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+.title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-basis: auto;
+}
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+#monthly-remaining-total {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #0056b3;
+    white-space: nowrap;
+}
+
+.loading-spinner {
+    display: none;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
