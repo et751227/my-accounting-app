@@ -88,10 +88,8 @@
 </div>
 
 <script>
-    // 請將此處的 URL 替換為您在 Apps Script 部署時獲得的 URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
 
-    // DOM 元素
     const form = document.getElementById('accounting-form');
     const transactionList = document.getElementById('transaction-list');
     const dailyBudgetDisplay = document.getElementById('daily-budget-display');
@@ -102,12 +100,10 @@
     const dateInput = document.getElementById('date');
     const showDailySummaryButton = document.getElementById('show-daily-summary-button');
 
-    // 全局變數
     let allTransactions = [];
     let dailyBudget = 0;
-    let currentViewMode = 'today'; // 追蹤目前的檢視模式：'today', 'month', 'summary'
+    let currentViewMode = 'today'; 
 
-    // 載入所有記帳紀錄
     async function fetchTransactions() {
         try {
             const response = await fetch(API_URL);
@@ -116,12 +112,11 @@
             allTransactions = data.transactions;
             dailyBudget = data.daily_budget;
             
-            // 根據目前的檢視模式，重新渲染頁面
             if (currentViewMode === 'summary') {
                 showDailySummary();
             } else if (currentViewMode === 'month') {
                 updateView('month');
-            } else { // 預設或回到 today
+            } else { 
                 updateView(dateInput.value);
             }
 
@@ -131,7 +126,6 @@
         }
     }
 
-    // 更新摘要區塊
     function updateSummary(dateString) {
         let totalSpentForSummary = 0;
         allTransactions.forEach(record => {
@@ -155,7 +149,6 @@
         }
     }
 
-    // 更新紀錄列表（顯示單日或當月）
     function updateView(filter) {
         let recordsToShow = [];
         let titleText = '';
@@ -179,15 +172,13 @@
             });
             titleText = "當月所有紀錄";
             toggleViewButton.textContent = "只顯示今日紀錄";
-            currentViewMode = 'month';
-        } else { // 處理單一日期
+        } else { 
             const selectedDateString = filter;
             recordsToShow = allTransactions.filter(record => {
                 return new Date(record.日期).toISOString().split('T')[0] === selectedDateString;
             });
             titleText = `${selectedDateString} 紀錄`;
             toggleViewButton.textContent = "顯示所有當月紀錄"; 
-            currentViewMode = 'today';
         }
 
         transactionsTitle.textContent = titleText;
@@ -211,7 +202,6 @@
         updateSummary(dateInput.value);
     }
 
-    // 顯示每日總結
     function showDailySummary() {
         currentViewMode = 'summary';
         const dailySummary = {};
@@ -231,7 +221,6 @@
         todaySpentDisplay.textContent = `-`;
         remainingAmountDisplay.textContent = `-`;
 
-        // 修改表格標題來匹配新的欄位
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
@@ -262,7 +251,6 @@
         }
     }
 
-    // 處理表單提交
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -297,34 +285,33 @@
         }
     });
 
-    // 切換顯示模式按鈕
     toggleViewButton.addEventListener('click', () => {
         if (currentViewMode === 'today') {
             currentViewMode = 'month';
             updateView('month');
-        } else {
+        } else if (currentViewMode === 'month') {
+            currentViewMode = 'today';
+            updateView(dateInput.value);
+        } else if (currentViewMode === 'summary') {
             currentViewMode = 'today';
             updateView(dateInput.value);
         }
     });
 
-    // 點擊「顯示每日總結」按鈕
     showDailySummaryButton.addEventListener('click', () => {
         currentViewMode = 'summary';
         showDailySummary();
     });
     
-    // 日期輸入框的事件監聽器，當日期改變時自動更新頁面
     dateInput.addEventListener('change', () => {
         currentViewMode = 'today'; 
         updateView(dateInput.value);
     });
 
-    // 頁面載入時自動執行
     window.onload = () => {
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
-        currentViewMode = 'today'; // 確保初始模式是今天
+        currentViewMode = 'today'; 
         fetchTransactions();
     };
 
