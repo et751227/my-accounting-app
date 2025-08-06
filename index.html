@@ -105,7 +105,7 @@
     // 全局變數
     let allTransactions = [];
     let dailyBudget = 0;
-    let currentViewMode = 'today'; // 新增一個變數來追蹤目前的檢視模式：'today', 'month', 'summary'
+    let currentViewMode = 'today'; // 追蹤目前的檢視模式：'today', 'month', 'summary'
 
     // 載入所有記帳紀錄
     async function fetchTransactions() {
@@ -160,27 +160,7 @@
         let recordsToShow = [];
         let titleText = '';
 
-        if (filter === 'month') {
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
-            recordsToShow = allTransactions.filter(record => {
-                const recordDate = new Date(record.日期);
-                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
-            });
-            titleText = "當月所有紀錄";
-            toggleViewButton.textContent = "只顯示今日紀錄";
-        } else { // 處理單一日期
-            const selectedDateString = filter;
-            recordsToShow = allTransactions.filter(record => {
-                return new Date(record.日期).toISOString().split('T')[0] === selectedDateString;
-            });
-            titleText = `${selectedDateString} 紀錄`;
-            toggleViewButton.textContent = "顯示所有當月紀錄"; 
-        }
-
-        transactionsTitle.textContent = titleText;
-
-        // 重置表格標題
+        // 恢復原始的表格標題
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
@@ -190,6 +170,27 @@
             <th>備註</th>
         `;
 
+        if (filter === 'month') {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            recordsToShow = allTransactions.filter(record => {
+                const recordDate = new Date(record.日期);
+                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+            });
+            titleText = "當月所有紀錄";
+            toggleViewButton.textContent = "只顯示今日紀錄";
+            currentViewMode = 'month';
+        } else { // 處理單一日期
+            const selectedDateString = filter;
+            recordsToShow = allTransactions.filter(record => {
+                return new Date(record.日期).toISOString().split('T')[0] === selectedDateString;
+            });
+            titleText = `${selectedDateString} 紀錄`;
+            toggleViewButton.textContent = "顯示所有當月紀錄"; 
+            currentViewMode = 'today';
+        }
+
+        transactionsTitle.textContent = titleText;
         transactionList.innerHTML = '';
         if (recordsToShow && recordsToShow.length > 0) {
             recordsToShow.forEach(record => {
@@ -207,7 +208,6 @@
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
 
-        // 最後更新摘要區塊
         updateSummary(dateInput.value);
     }
 
@@ -226,8 +226,7 @@
 
         transactionsTitle.textContent = "每日總結";
         toggleViewButton.textContent = "只顯示今日紀錄";
-
-        // 清空摘要區塊，因為這個模式下它沒有意義
+        
         dailyBudgetDisplay.textContent = `-`;
         todaySpentDisplay.textContent = `-`;
         remainingAmountDisplay.textContent = `-`;
@@ -300,17 +299,18 @@
 
     // 切換顯示模式按鈕
     toggleViewButton.addEventListener('click', () => {
-        if (currentViewMode === 'month' || currentViewMode === 'summary') {
-            currentViewMode = 'today';
-            updateView(dateInput.value);
-        } else {
+        if (currentViewMode === 'today') {
             currentViewMode = 'month';
             updateView('month');
+        } else {
+            currentViewMode = 'today';
+            updateView(dateInput.value);
         }
     });
 
     // 點擊「顯示每日總結」按鈕
     showDailySummaryButton.addEventListener('click', () => {
+        currentViewMode = 'summary';
         showDailySummary();
     });
     
@@ -324,6 +324,7 @@
     window.onload = () => {
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
+        currentViewMode = 'today'; // 確保初始模式是今天
         fetchTransactions();
     };
 
