@@ -15,7 +15,7 @@
         .remaining-amount.negative { color: #dc3545; }
         
         h1 { text-align: center; color: #333; }
-        h2 { margin-top: 30px; margin-bottom: 10px; color: #333; font-size: 1.5em; } /* 修正：明確定義 h2 的樣式 */
+        h2 { margin-top: 0; margin-bottom: 0; color: #333; font-size: 1.5em; } /* 修正: 移除 h2 的外邊距 */
         
         form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
         form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
@@ -35,19 +35,23 @@
             flex-wrap: wrap;
             margin-top: 30px;
             margin-bottom: 10px;
+            gap: 10px; /* 新增: 確保元素之間有間距 */
         }
         .title-group {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-grow: 1; /* 新增: 確保佔據可用空間 */
+            flex-basis: auto;
         }
         .button-group {
             display: flex;
             gap: 10px;
+            flex-shrink: 0; /* 新增: 防止按鈕群組被壓縮 */
         }
         
         #monthly-remaining-total {
-            font-size: 1em; /* 修正：讓總和字體大小與標題協調 */
+            font-size: 1.2em; /* 修正：讓總和字體大小更明顯 */
             font-weight: bold;
             color: #0056b3;
             white-space: nowrap; /* 修正：防止文字換行 */
@@ -112,7 +116,7 @@
     <div class="header-row">
         <div class="title-group">
             <h2 id="transactions-title">今日紀錄</h2>
-            <span id="monthly-remaining-total" style="font-weight: bold; color: #0056b3; display: none;"></span>
+            <span id="monthly-remaining-total"></span>
         </div>
         <div class="button-group">
             <button id="show-summary-button">顯示每日總結</button>
@@ -340,6 +344,7 @@
       if (isShowingSummary) {
         showSummaryButton.textContent = "顯示所有紀錄";
         toggleViewButton.style.display = 'none';
+        monthlyRemainingTotal.style.display = 'inline-block'; // 修正：確保總和顯示
       } else {
         showSummaryButton.textContent = "顯示每日總結";
         toggleViewButton.style.display = 'block';
