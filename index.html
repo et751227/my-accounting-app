@@ -116,6 +116,7 @@
 </div>
 
 <script>
+    // 請確認你的 Google Apps Script 部署網址是正確的
     const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
 
     const form = document.getElementById('accounting-form');
@@ -128,7 +129,6 @@
     const showSummaryButton = document.getElementById('show-summary-button');
     const tableHeaders = document.getElementById('table-headers');
     
-    // 新增的 DOM 元素
     const submitButton = document.getElementById('submit-button');
     const loadingSpinner = document.getElementById('loading-spinner');
     const dateInput = document.getElementById('date');
@@ -248,7 +248,6 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // 顯示載入狀態
         submitButton.style.display = 'none';
         loadingSpinner.style.display = 'block';
         submitButton.disabled = true;
@@ -262,17 +261,18 @@
         };
 
         try {
+            // 修正：將 Content-Type 改為 'text/plain'，並新增 redirect 選項
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newRecord)
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(newRecord),
+                redirect: 'follow'
             });
             
             const result = await response.json();
             if (result.status === 'success') {
                 alert('新增成功！');
                 form.reset();
-                // 修正1：新增成功後，手動將日期欄位設定為今天
                 dateInput.value = new Date().toISOString().split('T')[0];
                 fetchTransactions();
             } else {
@@ -283,7 +283,6 @@
             console.error('Error submitting form:', error);
             alert('新增失敗，請稍後再試。');
         } finally {
-            // 修正2：無論成功或失敗，都恢復按鈕狀態
             submitButton.style.display = 'block';
             loadingSpinner.style.display = 'none';
             submitButton.disabled = false;
