@@ -1,366 +1,77 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的記帳日誌</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .summary { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
-        .summary div { text-align: center; }
-        .summary h3 { margin: 0 0 5px 0; font-size: 16px; color: #555; }
-        .summary p { margin: 0; font-size: 24px; font-weight: bold; }
-        .remaining-amount.positive { color: #28a745; }
-        .remaining-amount.negative { color: #dc3545; }
-        
-        h1 { text-align: center; color: #333; }
-        /* 重要修正: 確保 h2 沒有預設的上下外邊距，以便 Flexbox 能正確對齊 */
-        h2 { margin: 0; padding: 0; color: #333; font-size: 1.5em; }
-        
-        form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-        form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
-        form button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-        form button:hover { background-color: #0056b3; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        table, th, td { border: 1px solid #ddd; }
-        th, td { padding: 12px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        
-        /* Flexbox 排版容器，確保標題和按鈕在同一行上且垂直居中 */
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* 關鍵修正：確保所有子元素垂直居中 */
-            flex-wrap: wrap;
-            margin-top: 30px;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-        /* 標題和總和數字的群組 */
-        .title-group {
-            display: flex;
-            align-items: center; /* 關鍵修正：確保 h2 和 span 垂直居中對齊 */
-            gap: 10px;
-            flex-basis: auto;
-        }
-        /* 按鈕群組 */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        
-        #monthly-remaining-total {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #0056b3;
-            white-space: nowrap;
-        }
-        
-        /* 載入動畫 */
-        .loading-spinner {
-            display: none;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的記帳日誌</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>我的記帳日誌</h1>
+    <h1>我的記帳日誌</h1>
 
-    <div class="summary">
-        <div>
-            <h3>每日預算</h3>
-            <p id="daily-budget-display">載入中...</p>
-        </div>
-        <div>
-            <h3>今日花費</h3>
-            <p id="today-spent-display">載入中...</p>
-        </div>
-        <div>
-            <h3>今日剩餘</h3>
-            <p id="remaining-amount-display" class="remaining-amount">載入中...</p>
-        </div>
-    </div>
+    <div class="summary">
+        <div>
+            <h3>每日預算</h3>
+            <p id="daily-budget-display">載入中...</p>
+        </div>
+        <div>
+            <h3>今日花費</h3>
+            <p id="today-spent-display">載入中...</p>
+        </div>
+        <div>
+            <h3>今日剩餘</h3>
+            <p id="remaining-amount-display" class="remaining-amount">載入中...</p>
+        </div>
+    </div>
 
-    <h2>新增記帳</h2>
-    <form id="accounting-form">
-        <input type="date" id="date" required>
-        <select id="category" required>
-            <option value="">選擇類別</option>
-            <option value="喝">喝</option>
-            <option value="吃">吃</option>
-            <option value="行">行</option>
-            <option value="樂">樂</option>
-        </select>
-        <input type="text" id="item" placeholder="項目" required>
-        <input type="number" id="amount" placeholder="金額" required>
-        <input type="text" id="notes" placeholder="備註">
-        <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1;">
-            <button type="submit" id="submit-button">新增</button>
-            <span id="loading-spinner" class="loading-spinner"></span>
-        </div>
-    </form>
+    <h2>新增記帳</h2>
+    <form id="accounting-form">
+        <input type="date" id="date" required>
+        <select id="category" required>
+            <option value="">選擇類別</option>
+            <option value="喝">喝</option>
+            <option value="吃">吃</option>
+            <option value="行">行</option>
+            <option value="樂">樂</option>
+        </select>
+        <input type="text" id="item" placeholder="項目" required>
+        <input type="number" id="amount" placeholder="金額" required>
+        <input type="text" id="notes" placeholder="備註">
+        <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1;">
+            <button type="submit" id="submit-button">新增</button>
+            <span id="loading-spinner" class="loading-spinner"></span>
+        </div>
+    </form>
 
-    <div class="header-row">
-        <div class="title-group">
-            <h2 id="transactions-title">今日紀錄</h2>
-            <span id="monthly-remaining-total"></span>
-        </div>
-        <div class="button-group">
-            <button id="show-summary-button">顯示每日總結</button>
-            <button id="toggle-view-button">顯示所有當月紀錄</button>
-        </div>
-    </div>
-    <table>
-        <thead>
-            <tr id="table-headers">
-                <th>日期</th>
-                <th>類別</th>
-                <th>項目</th>
-                <th>金額</th>
-                <th>備註</th>
-            </tr>
-        </thead>
-        <tbody id="transaction-list">
-            <tr><td colspan="5" style="text-align: center;">載入中...</td></tr>
-        </tbody>
-    </table>
+    <div class="header-row">
+        <div class="title-group">
+            <h2 id="transactions-title">今日紀錄</h2>
+            <span id="monthly-remaining-total"></span>
+        </div>
+        <div class="button-group">
+            <button id="show-summary-button">顯示每日總結</button>
+            <button id="toggle-view-button">顯示所有當月紀錄</button>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr id="table-headers">
+                <th>日期</th>
+                <th>類別</th>
+                <th>項目</th>
+                <th>金額</th>
+                <th>備註</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-list">
+            <tr><td colspan="5" style="text-align: center;">載入中...</td></tr>
+        </tbody>
+    </table>
 </div>
 
-<script>
-    // 請確認你的 Google Apps Script 部署網址是正確的
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
-
-    const form = document.getElementById('accounting-form');
-    const transactionList = document.getElementById('transaction-list');
-    const dailyBudgetDisplay = document.getElementById('daily-budget-display');
-    const todaySpentDisplay = document.getElementById('today-spent-display');
-    const remainingAmountDisplay = document.getElementById('remaining-amount-display');
-    const transactionsTitle = document.getElementById('transactions-title');
-    const toggleViewButton = document.getElementById('toggle-view-button');
-    const showSummaryButton = document.getElementById('show-summary-button');
-    const tableHeaders = document.getElementById('table-headers');
-    
-    const submitButton = document.getElementById('submit-button');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const dateInput = document.getElementById('date');
-
-    const monthlyRemainingTotal = document.getElementById('monthly-remaining-total');
-
-    let allTransactions = [];
-    let dailySummaries = {};
-    let isShowingSummary = false;
-    let isShowingToday = true;
-
-    async function fetchTransactions() {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            
-            allTransactions = data.transactions;
-            dailySummaries = data.dailySummaries;
-
-            dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
-            todaySpentDisplay.textContent = `$${data.today_spent}`;
-            remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
-
-            remainingAmountDisplay.classList.remove('positive', 'negative');
-            if (data.remaining_amount >= 0) {
-                remainingAmountDisplay.classList.add('positive');
-            } else {
-                remainingAmountDisplay.classList.add('negative');
-            }
-
-            updateTableDisplay();
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">載入失敗</td></tr>`;
-        }
-    }
-
-    function updateTableDisplay() {
-      if (isShowingSummary) {
-        displayDailySummaries();
-      } else {
-        displayTransactions(isShowingToday ? 'today' : 'month');
-      }
-    }
-
-    function displayTransactions(filter) {
-        let recordsToShow = [];
-        const today = new Date().toISOString().split('T')[0];
-
-        if (filter === 'today') {
-            recordsToShow = allTransactions.filter(record => record.日期 === today);
-            transactionsTitle.textContent = `今日紀錄`;
-        } else if (filter === 'month') {
-            const monthString = today.substring(0, 7);
-            recordsToShow = allTransactions.filter(record => record.日期.startsWith(monthString));
-            transactionsTitle.textContent = "當月所有紀錄";
-        }
-        
-        tableHeaders.innerHTML = `
-            <th>日期</th>
-            <th>類別</th>
-            <th>項目</th>
-            <th>金額</th>
-            <th>備註</th>
-        `;
-
-        transactionList.innerHTML = '';
-        
-        if (recordsToShow && recordsToShow.length > 0) {
-            recordsToShow.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.日期}</td>
-                    <td>${record.類別}</td>
-                    <td>${record.項目}</td>
-                    <td>${record.金額}</td>
-                    <td>${record.備註 || ''}</td>
-                `;
-                transactionList.appendChild(row);
-            });
-        } else {
-            transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
-        }
-        monthlyRemainingTotal.style.display = 'none';
-    }
-    
-    function displayDailySummaries() {
-        transactionsTitle.textContent = '每日總結';
-        tableHeaders.innerHTML = `
-            <th>日期</th>
-            <th>每日預算</th>
-            <th>每日花費</th>
-            <th>每日剩餘</th>
-        `;
-        
-        transactionList.innerHTML = '';
-        
-        let totalRemaining = 0;
-        const today = new Date().toISOString().split('T')[0];
-        const monthString = today.substring(0, 7);
-        
-        if (Object.keys(dailySummaries).length > 0) {
-            const sortedDates = Object.keys(dailySummaries).sort((a, b) => new Date(a) - new Date(b));
-            sortedDates.forEach(date => {
-                const summary = dailySummaries[date];
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${date}</td>
-                    <td>$${summary.daily_budget}</td>
-                    <td>$${summary.today_spent}</td>
-                    <td>$${summary.remaining_amount}</td>
-                `;
-                transactionList.appendChild(row);
-
-                if (date.startsWith(monthString)) {
-                    totalRemaining += summary.remaining_amount;
-                }
-            });
-        } else {
-            transactionList.innerHTML = `<tr><td colspan="4" style="text-align: center;">尚無總結紀錄</td></tr>`;
-        }
-        monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
-        monthlyRemainingTotal.style.display = 'inline';
-    }
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        submitButton.style.display = 'none';
-        loadingSpinner.style.display = 'block';
-        submitButton.disabled = true;
-        
-        const newRecord = {
-            日期: dateInput.value,
-            類別: document.getElementById('category').value,
-            項目: document.getElementById('item').value,
-            金額: parseFloat(document.getElementById('amount').value),
-            備註: document.getElementById('notes').value
-        };
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(newRecord),
-                redirect: 'follow'
-            });
-            
-            const result = await response.json();
-            if (result.status === 'success') {
-                alert('新增成功！');
-                form.reset();
-                dateInput.value = new Date().toISOString().split('T')[0];
-                fetchTransactions();
-            } else {
-                alert(`新增失敗：${result.message}`);
-            }
-
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('新增失敗，請稍後再試。');
-        } finally {
-            submitButton.style.display = 'block';
-            loadingSpinner.style.display = 'none';
-            submitButton.disabled = false;
-        }
-    });
-
-    toggleViewButton.addEventListener('click', () => {
-        isShowingSummary = false;
-        isShowingToday = !isShowingToday;
-        if (isShowingToday) {
-            toggleViewButton.textContent = "顯示所有當月紀錄";
-        } else {
-            toggleViewButton.textContent = "只顯示今日紀錄";
-        }
-        showSummaryButton.style.display = 'block';
-        showSummaryButton.textContent = "顯示每日總結";
-        monthlyRemainingTotal.style.display = 'none';
-        updateTableDisplay();
-    });
-    
-    showSummaryButton.addEventListener('click', () => {
-      isShowingSummary = !isShowingSummary;
-      if (isShowingSummary) {
-        showSummaryButton.textContent = "顯示所有紀錄";
-        toggleViewButton.style.display = 'none';
-        monthlyRemainingTotal.style.display = 'inline-block';
-      } else {
-        showSummaryButton.textContent = "顯示每日總結";
-        toggleViewButton.style.display = 'block';
-        monthlyRemainingTotal.style.display = 'none';
-      }
-      updateTableDisplay();
-    });
-
-    window.onload = () => {
-      const today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
-      fetchTransactions();
-    };
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
