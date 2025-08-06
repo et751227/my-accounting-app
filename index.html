@@ -66,10 +66,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 id="transactions-title">今日紀錄</h2>
-        <div>
-            <button id="show-daily-summary-button" style="margin-right: 10px;">顯示每日總結</button>
-            <button id="toggle-view-button">顯示所有當月紀錄</button>
-        </div>
+        <button id="toggle-view-button">顯示所有當月紀錄</button>
     </div>
     <table>
         <thead>
@@ -88,8 +85,10 @@
 </div>
 
 <script>
+    // 請將此處的 URL 替換為您在 Apps Script 部署時獲得的 URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
 
+    // DOM 元素
     const form = document.getElementById('accounting-form');
     const transactionList = document.getElementById('transaction-list');
     const dailyBudgetDisplay = document.getElementById('daily-budget-display');
@@ -97,29 +96,35 @@
     const remainingAmountDisplay = document.getElementById('remaining-amount-display');
     const transactionsTitle = document.getElementById('transactions-title');
     const toggleViewButton = document.getElementById('toggle-view-button');
-    const dateInput = document.getElementById('date');
-    const showDailySummaryButton = document.getElementById('show-daily-summary-button');
 
+    // 全局變數
     let allTransactions = [];
-    let dailyBudget = 0;
-    let currentViewMode = 'today'; 
+    let isShowingToday = true;
 
+    // 載入所有記帳紀錄與每日總結
     async function fetchTransactions() {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
             
+            // 將所有紀錄存入全局變數
             allTransactions = data.transactions;
-            dailyBudget = data.daily_budget;
-            
-            // 修正：當資料載入完成後，直接呼叫一次更新，確保顯示今天的紀錄
-            if (currentViewMode === 'today') {
-                updateView(dateInput.value);
-            } else if (currentViewMode === 'month') {
-                updateView('month');
-            } else if (currentViewMode === 'summary') {
-                showDailySummary();
+
+            // 更新每日總結區塊
+            dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
+            todaySpentDisplay.textContent = `$${data.today_spent}`;
+            remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
+
+            // 根據剩餘金額顯示顏色
+            remainingAmountDisplay.classList.remove('positive', 'negative');
+            if (data.remaining_amount >= 0) {
+                remainingAmountDisplay.classList.add('positive');
+            } else {
+                remainingAmountDisplay.classList.add('negative');
             }
+
+            // 預設只顯示今日紀錄
+            displayTransactions('today');
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -127,66 +132,33 @@
         }
     }
 
-    function updateSummary(dateString) {
-        let totalSpentForSummary = 0;
-        allTransactions.forEach(record => {
-            if (record.日期 === dateString) { // 直接比對字串
-                totalSpentForSummary += parseFloat(record.金額);
-            }
-        });
-    
-        const remainingAmount = dailyBudget - totalSpentForSummary;
-    
-        dailyBudgetDisplay.textContent = `$${dailyBudget}`;
-        todaySpentDisplay.textContent = `$${totalSpentForSummary}`;
-        remainingAmountDisplay.textContent = `$${remainingAmount}`;
-    
-        remainingAmountDisplay.classList.remove('positive', 'negative');
-        if (remainingAmount >= 0) {
-            remainingAmountDisplay.classList.add('positive');
-        } else {
-            remainingAmountDisplay.classList.add('negative');
-        }
-    }
-    
-    function updateView(filter) {
+    // 顯示指定紀錄
+    function displayTransactions(filter) {
         let recordsToShow = [];
-        let titleText = '';
-    
-        const headerRow = document.querySelector('thead tr');
-        headerRow.innerHTML = `
-            <th>日期</th>
-            <th>類別</th>
-            <th>項目</th>
-            <th>金額</th>
-            <th>備註</th>
-        `;
-    
-        if (filter === 'month') {
-            const currentMonth = new Date().getMonth() + 1; // getMonth() 回傳 0-11
-            const currentYear = new Date().getFullYear();
+        if (filter === 'today') {
+            const today = new Date().toLocaleDateString();
+            recordsToShow = allTransactions.filter(record => new Date(record.日期).toLocaleDateString() === today);
+            transactionsTitle.textContent = "今日紀錄";
+        } else if (filter === 'month') {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
             recordsToShow = allTransactions.filter(record => {
-                const recordDate = record.日期; // 後端已處理為 YYYY-MM-DD
-                return recordDate.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`);
+                const recordDate = new Date(record.日期);
+                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
             });
-            titleText = "當月所有紀錄";
-            toggleViewButton.textContent = "只顯示今日紀錄";
-        } else {
-            const selectedDateString = filter;
-            recordsToShow = allTransactions.filter(record => {
-                return record.日期 === selectedDateString; // 直接比對字串
-            });
-            titleText = `${selectedDateString} 紀錄`;
-            toggleViewButton.textContent = "顯示所有當月紀錄"; 
+            transactionsTitle.textContent = "當月所有紀錄";
         }
-    
-        transactionsTitle.textContent = titleText;
+
+        // 清空舊的紀錄
         transactionList.innerHTML = '';
+        
+        // 渲染新的紀錄
         if (recordsToShow && recordsToShow.length > 0) {
             recordsToShow.forEach(record => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${record.日期}</td>
+                    <td>${new Date(record.日期).toLocaleDateString()}</td>
                     <td>${record.類別}</td>
                     <td>${record.項目}</td>
                     <td>${record.金額}</td>
@@ -197,65 +169,14 @@
         } else {
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
-    
-        updateSummary(dateInput.value);
     }
 
-
-    function showDailySummary() {
-        currentViewMode = 'summary';
-        const dailySummary = {};
-        
-        allTransactions.forEach(record => {
-            const dateStr = new Date(record.日期).toISOString().split('T')[0];
-            if (!dailySummary[dateStr]) {
-                dailySummary[dateStr] = 0;
-            }
-            dailySummary[dateStr] += parseFloat(record.金額);
-        });
-
-        transactionsTitle.textContent = "每日總結";
-        toggleViewButton.textContent = "只顯示今日紀錄";
-        
-        dailyBudgetDisplay.textContent = `-`;
-        todaySpentDisplay.textContent = `-`;
-        remainingAmountDisplay.textContent = `-`;
-
-        const headerRow = document.querySelector('thead tr');
-        headerRow.innerHTML = `
-            <th>日期</th>
-            <th>每日預算</th>
-            <th>每日花費</th>
-            <th>每日剩餘</th>
-        `;
-
-        transactionList.innerHTML = '';
-        const sortedDates = Object.keys(dailySummary).sort();
-        if (sortedDates.length > 0) {
-            sortedDates.forEach(date => {
-                const totalSpent = dailySummary[date];
-                const remaining = dailyBudget - totalSpent;
-                const row = document.createElement('tr');
-                const remainingColorClass = remaining >= 0 ? 'positive' : 'negative';
-
-                row.innerHTML = `
-                    <td>${new Date(date).toLocaleDateString()}</td>
-                    <td>$${dailyBudget}</td>
-                    <td>$${totalSpent}</td>
-                    <td class="${remainingColorClass}">$${remaining}</td>
-                `;
-                transactionList.appendChild(row);
-            });
-        } else {
-            transactionList.innerHTML = `<tr><td colspan="4" style="text-align: center;">尚無總結紀錄</td></tr>`;
-        }
-    }
-
+    // 處理表單提交
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const newRecord = {
-            日期: dateInput.value,
+            日期: document.getElementById('date').value,
             類別: document.getElementById('category').value,
             項目: document.getElementById('item').value,
             金額: parseFloat(document.getElementById('amount').value),
@@ -272,9 +193,8 @@
             const result = await response.json();
             if (result.status === 'success') {
                 alert('新增成功！');
-                form.reset(); 
-                dateInput.value = newRecord.日期; 
-                fetchTransactions(); 
+                form.reset(); // 清空表單
+                fetchTransactions(); // 重新載入紀錄
             } else {
                 alert(`新增失敗：${result.message}`);
             }
@@ -285,35 +205,25 @@
         }
     });
 
+    // 切換顯示模式按鈕
     toggleViewButton.addEventListener('click', () => {
-        if (currentViewMode === 'today') {
-            currentViewMode = 'month';
-            updateView('month');
-        } else if (currentViewMode === 'month') {
-            currentViewMode = 'today';
-            updateView(dateInput.value);
-        } else if (currentViewMode === 'summary') {
-            currentViewMode = 'today';
-            updateView(dateInput.value);
+        isShowingToday = !isShowingToday;
+        if (isShowingToday) {
+            displayTransactions('today');
+            toggleViewButton.textContent = "顯示所有當月紀錄";
+        } else {
+            displayTransactions('month');
+            toggleViewButton.textContent = "只顯示今日紀錄";
         }
     });
 
-    showDailySummaryButton.addEventListener('click', () => {
-        currentViewMode = 'summary';
-        showDailySummary();
-    });
-    
-    dateInput.addEventListener('change', () => {
-        currentViewMode = 'today'; 
-        updateView(dateInput.value);
-    });
-
+    // 頁面載入時自動執行
     window.onload = () => {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-        currentViewMode = 'today'; 
-        fetchTransactions();
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').value = today;
+      fetchTransactions();
     };
+
 </script>
 
 </body>
