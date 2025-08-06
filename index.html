@@ -232,12 +232,15 @@
             金額: parseFloat(document.getElementById('amount').value),
             備註: document.getElementById('notes').value
         };
-
+    
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newRecord)
+                // 修正：將 Content-Type 改為 'text/plain'，使其成為簡單請求
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(newRecord),
+                // 新增 redirect 選項以確保在某些環境下能正確處理
+                redirect: 'follow'
             });
             
             const result = await response.json();
@@ -248,7 +251,7 @@
             } else {
                 alert(`新增失敗：${result.message}`);
             }
-
+    
         } catch (error) {
             console.error('Error submitting form:', error);
             alert('新增失敗，請稍後再試。');
