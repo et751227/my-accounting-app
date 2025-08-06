@@ -15,7 +15,7 @@
         .remaining-amount.negative { color: #dc3545; }
         
         h1 { text-align: center; color: #333; }
-        h2 { margin-top: 30px; color: #333; }
+        h2 { margin-top: 30px; margin-bottom: 10px; color: #333; font-size: 1.5em; } /* 修正：明確定義 h2 的樣式 */
         
         form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
         form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
@@ -26,21 +26,31 @@
         table, th, td { border: 1px solid #ddd; }
         th, td { padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
+        
+        /* 修正: 使用 Flexbox 排版標題和按鈕群組 */
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* 修正：避免空間不足時按鈕換行 */
+            flex-wrap: wrap;
+            margin-top: 30px;
+            margin-bottom: 10px;
         }
-        /* 修正：增加一個新的 flex-group 來包裹 h2 和 span */
-        .title-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         .button-group {
             display: flex;
             gap: 10px;
+        }
+        
+        #monthly-remaining-total {
+            font-size: 1em; /* 修正：讓總和字體大小與標題協調 */
+            font-weight: bold;
+            color: #0056b3;
+            white-space: nowrap; /* 修正：防止文字換行 */
         }
         
         /* 新增的 CSS 樣式 */
@@ -100,10 +110,10 @@
     </form>
 
     <div class="header-row">
-        <div class="title-group">
+        <div class="title-group">
             <h2 id="transactions-title">今日紀錄</h2>
             <span id="monthly-remaining-total" style="font-weight: bold; color: #0056b3; display: none;"></span>
-        </div>
+        </div>
         <div class="button-group">
             <button id="show-summary-button">顯示每日總結</button>
             <button id="toggle-view-button">顯示所有當月紀錄</button>
@@ -226,7 +236,7 @@
         } else {
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
-        monthlyRemainingTotal.style.display = 'none'; // 新增：隱藏當月總和
+        monthlyRemainingTotal.style.display = 'none';
     }
     
     function displayDailySummaries() {
@@ -239,10 +249,10 @@
         `;
         
         transactionList.innerHTML = '';
-        
-        let totalRemaining = 0;
-        const today = new Date().toISOString().split('T')[0];
-        const monthString = today.substring(0, 7);
+        
+        let totalRemaining = 0;
+        const today = new Date().toISOString().split('T')[0];
+        const monthString = today.substring(0, 7);
         
         if (Object.keys(dailySummaries).length > 0) {
             const sortedDates = Object.keys(dailySummaries).sort((a, b) => new Date(a) - new Date(b));
@@ -257,15 +267,15 @@
                 `;
                 transactionList.appendChild(row);
 
-                if (date.startsWith(monthString)) {
-                    totalRemaining += summary.remaining_amount;
-                }
+                if (date.startsWith(monthString)) {
+                    totalRemaining += summary.remaining_amount;
+                }
             });
         } else {
             transactionList.innerHTML = `<tr><td colspan="4" style="text-align: center;">尚無總結紀錄</td></tr>`;
         }
-        monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
-        monthlyRemainingTotal.style.display = 'inline';
+        monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
+        monthlyRemainingTotal.style.display = 'inline';
     }
 
     form.addEventListener('submit', async (e) => {
