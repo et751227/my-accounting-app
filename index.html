@@ -35,6 +35,22 @@
             display: flex;
             gap: 10px;
         }
+        
+        /* 新增的 CSS 樣式 */
+        .loading-spinner {
+            display: none; /* 預設隱藏 */
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -70,7 +86,10 @@
         <input type="text" id="item" placeholder="項目" required>
         <input type="number" id="amount" placeholder="金額" required>
         <input type="text" id="notes" placeholder="備註">
-        <button type="submit">新增</button>
+        <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1;">
+            <button type="submit" id="submit-button">新增</button>
+            <span id="loading-spinner" class="loading-spinner"></span>
+        </div>
     </form>
 
     <div class="header-row">
@@ -97,7 +116,6 @@
 </div>
 
 <script>
-    // 請確認你的 Google Apps Script 部署網址是正確的
     const API_URL = 'https://script.google.com/macros/s/AKfycbxHJcgE1V5unNExnWXbfKnHRm4U_J2z9bfTwwXsPU2-jjx3i9KP8wtWbOuWz4K5RgIf/exec';
 
     const form = document.getElementById('accounting-form');
@@ -109,6 +127,11 @@
     const toggleViewButton = document.getElementById('toggle-view-button');
     const showSummaryButton = document.getElementById('show-summary-button');
     const tableHeaders = document.getElementById('table-headers');
+    
+    // 新增的 DOM 元素
+    const submitButton = document.getElementById('submit-button');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const dateInput = document.getElementById('date');
 
     let allTransactions = [];
     let dailySummaries = {};
@@ -225,36 +248,45 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // 顯示載入狀態
+        submitButton.style.display = 'none';
+        loadingSpinner.style.display = 'block';
+        submitButton.disabled = true;
+        
         const newRecord = {
-            日期: document.getElementById('date').value,
+            日期: dateInput.value,
             類別: document.getElementById('category').value,
             項目: document.getElementById('item').value,
             金額: parseFloat(document.getElementById('amount').value),
             備註: document.getElementById('notes').value
         };
-    
+
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                // 修正：將 Content-Type 改為 'text/plain'，使其成為簡單請求
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(newRecord),
-                // 新增 redirect 選項以確保在某些環境下能正確處理
-                redirect: 'follow'
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRecord)
             });
             
             const result = await response.json();
             if (result.status === 'success') {
                 alert('新增成功！');
                 form.reset();
+                // 修正1：新增成功後，手動將日期欄位設定為今天
+                dateInput.value = new Date().toISOString().split('T')[0];
                 fetchTransactions();
             } else {
                 alert(`新增失敗：${result.message}`);
             }
-    
+
         } catch (error) {
             console.error('Error submitting form:', error);
             alert('新增失敗，請稍後再試。');
+        } finally {
+            // 修正2：無論成功或失敗，都恢復按鈕狀態
+            submitButton.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+            submitButton.disabled = false;
         }
     });
 
@@ -285,7 +317,7 @@
 
     window.onload = () => {
       const today = new Date().toISOString().split('T')[0];
-      document.getElementById('date').value = today;
+      dateInput.value = today;
       fetchTransactions();
     };
 </script>
