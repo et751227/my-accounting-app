@@ -130,18 +130,17 @@
     function updateSummary(dateString) {
         let totalSpentForSummary = 0;
         allTransactions.forEach(record => {
-            const recordDate = new Date(record.日期).toISOString().split('T')[0];
-            if (recordDate === dateString) {
+            if (record.日期 === dateString) { // 直接比對字串
                 totalSpentForSummary += parseFloat(record.金額);
             }
         });
-
+    
         const remainingAmount = dailyBudget - totalSpentForSummary;
-
+    
         dailyBudgetDisplay.textContent = `$${dailyBudget}`;
         todaySpentDisplay.textContent = `$${totalSpentForSummary}`;
         remainingAmountDisplay.textContent = `$${remainingAmount}`;
-
+    
         remainingAmountDisplay.classList.remove('positive', 'negative');
         if (remainingAmount >= 0) {
             remainingAmountDisplay.classList.add('positive');
@@ -149,11 +148,11 @@
             remainingAmountDisplay.classList.add('negative');
         }
     }
-
+    
     function updateView(filter) {
         let recordsToShow = [];
         let titleText = '';
-
+    
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
@@ -162,32 +161,32 @@
             <th>金額</th>
             <th>備註</th>
         `;
-
+    
         if (filter === 'month') {
-            const currentMonth = new Date().getMonth();
+            const currentMonth = new Date().getMonth() + 1; // getMonth() 回傳 0-11
             const currentYear = new Date().getFullYear();
             recordsToShow = allTransactions.filter(record => {
-                const recordDate = new Date(record.日期);
-                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+                const recordDate = record.日期; // 後端已處理為 YYYY-MM-DD
+                return recordDate.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`);
             });
             titleText = "當月所有紀錄";
             toggleViewButton.textContent = "只顯示今日紀錄";
         } else {
             const selectedDateString = filter;
             recordsToShow = allTransactions.filter(record => {
-                return new Date(record.日期).toISOString().split('T')[0] === selectedDateString;
+                return record.日期 === selectedDateString; // 直接比對字串
             });
             titleText = `${selectedDateString} 紀錄`;
             toggleViewButton.textContent = "顯示所有當月紀錄"; 
         }
-
+    
         transactionsTitle.textContent = titleText;
         transactionList.innerHTML = '';
         if (recordsToShow && recordsToShow.length > 0) {
             recordsToShow.forEach(record => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${new Date(record.日期).toLocaleDateString()}</td>
+                    <td>${record.日期}</td>
                     <td>${record.類別}</td>
                     <td>${record.項目}</td>
                     <td>${record.金額}</td>
@@ -198,9 +197,10 @@
         } else {
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
-
+    
         updateSummary(dateInput.value);
     }
+
 
     function showDailySummary() {
         currentViewMode = 'summary';
