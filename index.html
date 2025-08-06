@@ -116,15 +116,13 @@
             allTransactions = data.transactions;
             dailyBudget = data.daily_budget;
             
+            // 修正：當資料載入完成後，確保會根據當前的模式來更新畫面
             if (currentViewMode === 'summary') {
                 showDailySummary();
             } else if (currentViewMode === 'month') {
                 updateView('month');
             } else { 
-                // 修正：確保在載入資料後，如果當前模式是today，就顯示今天的紀錄
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.value = today;
-                updateView(today);
+                updateView(dateInput.value);
             }
 
         } catch (error) {
@@ -162,7 +160,7 @@
         let recordsToShow = [];
         let titleText = '';
 
-        // 修正：在每次進入此函式時，先恢復原始的表格標題
+        // 恢復原始的表格標題
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
