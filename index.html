@@ -66,10 +66,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 id="transactions-title">今日紀錄</h2>
-        <div>
-            <button id="calculate-button" style="margin-right: 10px;">計算此日花費</button>
-            <button id="toggle-view-button">顯示所有當月紀錄</button>
-        </div>
+        <button id="toggle-view-button">顯示所有當月紀錄</button>
     </div>
     <table>
         <thead>
@@ -99,11 +96,9 @@
     const remainingAmountDisplay = document.getElementById('remaining-amount-display');
     const transactionsTitle = document.getElementById('transactions-title');
     const toggleViewButton = document.getElementById('toggle-view-button');
-    const calculateButton = document.getElementById('calculate-button'); // 新增的按鈕
 
     // 全局變數
     let allTransactions = [];
-    let dailyBudget = 0;
     let isShowingToday = true;
 
     // 載入所有記帳紀錄與每日總結
@@ -114,10 +109,22 @@
             
             // 將所有紀錄存入全局變數
             allTransactions = data.transactions;
-            dailyBudget = data.daily_budget; // 儲存每日預算
-            
-            // 預設只顯示今日紀錄並更新摘要
-            updateSummaryAndTransactions(new Date().toISOString().split('T')[0]);
+
+            // 更新每日總結區塊
+            dailyBudgetDisplay.textContent = `$${data.daily_budget}`;
+            todaySpentDisplay.textContent = `$${data.today_spent}`;
+            remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
+
+            // 根據剩餘金額顯示顏色
+            remainingAmountDisplay.classList.remove('positive', 'negative');
+            if (data.remaining_amount >= 0) {
+                remainingAmountDisplay.classList.add('positive');
+            } else {
+                remainingAmountDisplay.classList.add('negative');
+            }
+
+            // 預設只顯示今日紀錄
+            displayTransactions('today');
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -125,15 +132,14 @@
         }
     }
 
-    // 顯示指定紀錄並更新摘要
-    function updateSummaryAndTransactions(filterDate) {
+    // 顯示指定紀錄
+    function displayTransactions(filter) {
         let recordsToShow = [];
-        let todaySpent = 0;
-        
-        const todayString = new Date().toISOString().split('T')[0];
-
-        // 過濾出特定日期的紀錄
-        if (filterDate === 'month') {
+        if (filter === 'today') {
+            const today = new Date().toLocaleDateString();
+            recordsToShow = allTransactions.filter(record => new Date(record.日期).toLocaleDateString() === today);
+            transactionsTitle.textContent = "今日紀錄";
+        } else if (filter === 'month') {
             const today = new Date();
             const currentMonth = today.getMonth();
             const currentYear = today.getFullYear();
@@ -142,38 +148,6 @@
                 return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
             });
             transactionsTitle.textContent = "當月所有紀錄";
-            toggleViewButton.textContent = "只顯示今日紀錄";
-        } else { // 處理 'today' 或自定義日期
-            recordsToShow = allTransactions.filter(record => {
-                // 檢查 record.日期 是否存在且是有效的日期字串
-                return record.日期 && new Date(record.日期).toISOString().split('T')[0] === filterDate;
-            });
-            transactionsTitle.textContent = filterDate === todayString ? "今日紀錄" : `${filterDate} 紀錄`;
-            toggleViewButton.textContent = "顯示所有當月紀錄"; 
-        }
-
-        // 計算特定日期的花費 (只針對單一日期)
-        const dateForSummary = filterDate === 'month' ? todayString : filterDate;
-        allTransactions.forEach(record => {
-            const recordDate = record.日期 ? new Date(record.日期).toISOString().split('T')[0] : '';
-            if (recordDate === dateForSummary) {
-                todaySpent += parseFloat(record.金額);
-            }
-        });
-
-        const remainingAmount = dailyBudget - todaySpent;
-
-        // 更新每日總結區塊
-        dailyBudgetDisplay.textContent = `$${dailyBudget}`;
-        todaySpentDisplay.textContent = `$${todaySpent}`;
-        remainingAmountDisplay.textContent = `$${remainingAmount}`;
-
-        // 根據剩餘金額顯示顏色
-        remainingAmountDisplay.classList.remove('positive', 'negative');
-        if (remainingAmount >= 0) {
-            remainingAmountDisplay.classList.add('positive');
-        } else {
-            remainingAmountDisplay.classList.add('negative');
         }
 
         // 清空舊的紀錄
@@ -235,28 +209,19 @@
     toggleViewButton.addEventListener('click', () => {
         isShowingToday = !isShowingToday;
         if (isShowingToday) {
-            const today = new Date().toISOString().split('T')[0];
-            updateSummaryAndTransactions(today);
+            displayTransactions('today');
+            toggleViewButton.textContent = "顯示所有當月紀錄";
         } else {
-            updateSummaryAndTransactions('month');
-        }
-    });
-
-    // 新增的事件監聽器：點擊「計算此日花費」按鈕
-    calculateButton.addEventListener('click', () => {
-        const selectedDate = document.getElementById('date').value;
-        if (selectedDate) {
-            updateSummaryAndTransactions(selectedDate);
-        } else {
-            alert('請先選擇一個日期');
+            displayTransactions('month');
+            toggleViewButton.textContent = "只顯示今日紀錄";
         }
     });
 
     // 頁面載入時自動執行
     window.onload = () => {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date').value = today;
-        fetchTransactions();
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').value = today;
+      fetchTransactions();
     };
 
 </script>
