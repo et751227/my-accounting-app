@@ -15,7 +15,8 @@
         .remaining-amount.negative { color: #dc3545; }
         
         h1 { text-align: center; color: #333; }
-        h2 { margin: 0; padding: 0; color: #333; font-size: 1.5em; } /* 修正：移除 h2 的外邊距和內邊距 */
+        /* 重要修正: 確保 h2 沒有預設的上下外邊距，以便 Flexbox 能正確對齊 */
+        h2 { margin: 0; padding: 0; color: #333; font-size: 1.5em; }
         
         form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
         form input, form select, form button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; flex-grow: 1; }
@@ -27,22 +28,24 @@
         th, td { padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
         
-        /* 修正: 使用 Flexbox 排版標題和按鈕群組 */
+        /* Flexbox 排版容器，確保標題和按鈕在同一行上且垂直居中 */
         .header-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: center; /* 關鍵修正：確保所有子元素垂直居中 */
             flex-wrap: wrap;
             margin-top: 30px;
             margin-bottom: 10px;
             gap: 10px;
         }
+        /* 標題和總和數字的群組 */
         .title-group {
             display: flex;
-            align-items: center;
+            align-items: center; /* 關鍵修正：確保 h2 和 span 垂直居中對齊 */
             gap: 10px;
             flex-basis: auto;
         }
+        /* 按鈕群組 */
         .button-group {
             display: flex;
             gap: 10px;
@@ -56,9 +59,9 @@
             white-space: nowrap;
         }
         
-        /* 新增的 CSS 樣式 */
+        /* 載入動畫 */
         .loading-spinner {
-            display: none; /* 預設隱藏 */
+            display: none;
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
             border-radius: 50%;
