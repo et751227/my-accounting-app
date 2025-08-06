@@ -112,13 +112,13 @@
             allTransactions = data.transactions;
             dailyBudget = data.daily_budget;
             
-            // 修正：當資料載入完成後，根據目前的檢視模式更新畫面
-            if (currentViewMode === 'summary') {
-                showDailySummary();
+            // 修正：當資料載入完成後，直接呼叫一次更新，確保顯示今天的紀錄
+            if (currentViewMode === 'today') {
+                updateView(dateInput.value);
             } else if (currentViewMode === 'month') {
                 updateView('month');
-            } else { 
-                updateView(dateInput.value);
+            } else if (currentViewMode === 'summary') {
+                showDailySummary();
             }
 
         } catch (error) {
@@ -154,7 +154,6 @@
         let recordsToShow = [];
         let titleText = '';
 
-        // 恢復原始的表格標題
         const headerRow = document.querySelector('thead tr');
         headerRow.innerHTML = `
             <th>日期</th>
@@ -290,8 +289,10 @@
         if (currentViewMode === 'today') {
             currentViewMode = 'month';
             updateView('month');
-        } else { 
-            // 修正：無論是從月曆模式還是總結模式切換回來，都回到今天
+        } else if (currentViewMode === 'month') {
+            currentViewMode = 'today';
+            updateView(dateInput.value);
+        } else if (currentViewMode === 'summary') {
             currentViewMode = 'today';
             updateView(dateInput.value);
         }
@@ -313,7 +314,6 @@
         currentViewMode = 'today'; 
         fetchTransactions();
     };
-
 </script>
 
 </body>
