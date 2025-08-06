@@ -30,7 +30,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* 修正：避免空間不足時按鈕換行 */
         }
+        /* 修正：增加一個新的 flex-group 來包裹 h2 和 span */
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         .button-group {
             display: flex;
             gap: 10px;
@@ -93,8 +100,10 @@
     </form>
 
     <div class="header-row">
-        <h2 id="transactions-title">今日紀錄</h2>
-                <span id="monthly-remaining-total" style="font-weight: bold; color: #0056b3; display: none;"></span>
+        <div class="title-group">
+            <h2 id="transactions-title">今日紀錄</h2>
+            <span id="monthly-remaining-total" style="font-weight: bold; color: #0056b3; display: none;"></span>
+        </div>
         <div class="button-group">
             <button id="show-summary-button">顯示每日總結</button>
             <button id="toggle-view-button">顯示所有當月紀錄</button>
@@ -133,7 +142,7 @@
     const submitButton = document.getElementById('submit-button');
     const loadingSpinner = document.getElementById('loading-spinner');
     const dateInput = document.getElementById('date');
-    // 新增：取得顯示當月總和的元素
+
     const monthlyRemainingTotal = document.getElementById('monthly-remaining-total');
 
     let allTransactions = [];
@@ -217,8 +226,7 @@
         } else {
             transactionList.innerHTML = `<tr><td colspan="5" style="text-align: center;">尚無紀錄</td></tr>`;
         }
-        // 新增：隱藏當月總和
-        monthlyRemainingTotal.style.display = 'none';
+        monthlyRemainingTotal.style.display = 'none'; // 新增：隱藏當月總和
     }
     
     function displayDailySummaries() {
@@ -232,7 +240,6 @@
         
         transactionList.innerHTML = '';
         
-        // 新增：計算當月每日剩餘總和的邏輯
         let totalRemaining = 0;
         const today = new Date().toISOString().split('T')[0];
         const monthString = today.substring(0, 7);
@@ -250,7 +257,6 @@
                 `;
                 transactionList.appendChild(row);
 
-                // 只計算當月的數據
                 if (date.startsWith(monthString)) {
                     totalRemaining += summary.remaining_amount;
                 }
@@ -258,7 +264,6 @@
         } else {
             transactionList.innerHTML = `<tr><td colspan="4" style="text-align: center;">尚無總結紀錄</td></tr>`;
         }
-        // 新增：將計算結果顯示在畫面上
         monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
         monthlyRemainingTotal.style.display = 'inline';
     }
@@ -316,7 +321,7 @@
         }
         showSummaryButton.style.display = 'block';
         showSummaryButton.textContent = "顯示每日總結";
-        monthlyRemainingTotal.style.display = 'none'; // 新增：隱藏當月總和
+        monthlyRemainingTotal.style.display = 'none';
         updateTableDisplay();
     });
     
@@ -328,7 +333,7 @@
       } else {
         showSummaryButton.textContent = "顯示每日總結";
         toggleViewButton.style.display = 'block';
-        monthlyRemainingTotal.style.display = 'none'; // 新增：隱藏當月總和
+        monthlyRemainingTotal.style.display = 'none';
       }
       updateTableDisplay();
     });
