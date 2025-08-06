@@ -26,6 +26,12 @@
         table, th, td { border: 1px solid #ddd; }
         th, td { padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .button-group {
             display: flex;
             gap: 10px;
@@ -68,7 +74,7 @@
         <button type="submit">新增</button>
     </form>
 
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="header-row">
         <h2 id="transactions-title">今日紀錄</h2>
         <div class="button-group">
           <button id="show-summary-button">顯示每日總結</button>
@@ -106,6 +112,7 @@
 
     let allTransactions = [];
     let dailySummaries = {};
+    let isShowingSummary = false;
     let isShowingToday = true;
 
     async function fetchTransactions() {
@@ -136,7 +143,7 @@
     }
 
     function updateTableDisplay() {
-      if (showSummaryButton.textContent === '顯示所有紀錄') {
+      if (isShowingSummary) {
         displayDailySummaries();
       } else {
         displayTransactions(isShowingToday ? 'today' : 'month');
@@ -245,27 +252,27 @@
     });
 
     toggleViewButton.addEventListener('click', () => {
+        isShowingSummary = false;
         isShowingToday = !isShowingToday;
         if (isShowingToday) {
-            displayTransactions('today');
             toggleViewButton.textContent = "顯示所有當月紀錄";
         } else {
-            displayTransactions('month');
             toggleViewButton.textContent = "只顯示今日紀錄";
         }
+        showSummaryButton.textContent = "顯示每日總結";
+        updateTableDisplay();
     });
     
     showSummaryButton.addEventListener('click', () => {
-      if (transactionsTitle.textContent !== '每日總結') {
-        displayDailySummaries();
-        toggleViewButton.style.display = 'none';
+      isShowingSummary = !isShowingSummary;
+      if (isShowingSummary) {
         showSummaryButton.textContent = "顯示所有紀錄";
+        toggleViewButton.style.display = 'none';
       } else {
-        isShowingToday = true;
-        displayTransactions('today');
-        toggleViewButton.style.display = 'block';
         showSummaryButton.textContent = "顯示每日總結";
+        toggleViewButton.style.display = 'block';
       }
+      updateTableDisplay();
     });
 
     window.onload = () => {
