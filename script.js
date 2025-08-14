@@ -34,6 +34,7 @@ async function fetchTransactions() {
         todaySpentDisplay.textContent = `$${data.today_spent}`;
         remainingAmountDisplay.textContent = `$${data.remaining_amount}`;
 
+        // 修正：這裡的邏輯已經存在，但我們將它保留以處理頂部的 "今日剩餘"
         remainingAmountDisplay.classList.remove('positive', 'negative');
         if (data.remaining_amount >= 0) {
             remainingAmountDisplay.classList.add('positive');
