@@ -41,6 +41,10 @@ th { background-color: #f2f2f2; }
     flex-shrink: 0;
 }
 
+#monthly-remaining-total.negative {
+    color: #dc3545; /* 負值時使用紅色 */
+}
+
 #monthly-remaining-total {
     font-size: 1.2em;
     font-weight: bold;
