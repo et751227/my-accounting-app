@@ -133,8 +133,15 @@ function displayDailySummaries() {
     } else {
         transactionList.innerHTML = `<tr><td colspan="4" style="text-align: center;">尚無總結紀錄</td></tr>`;
     }
+    
     monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
-    monthlyRemainingTotal.style.display = 'inline';
+    monthlyRemainingTotal.style.display = 'inline-block';
+
+    // 新增的程式碼：根據 totalRemaining 的值添加或移除 negative 類別
+    monthlyRemainingTotal.classList.remove('negative');
+    if (totalRemaining < 0) {
+        monthlyRemainingTotal.classList.add('negative');
+    }
 }
 
 form.addEventListener('submit', async (e) => {
