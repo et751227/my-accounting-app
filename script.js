@@ -119,11 +119,18 @@ function displayDailySummaries() {
         sortedDates.forEach(date => {
             const summary = dailySummaries[date];
             const row = document.createElement('tr');
+            
+            // 新增的程式碼：根據每日剩餘的值來設定 CSS 類別
+            let remainingAmountClass = '';
+            if (summary.remaining_amount < 0) {
+                remainingAmountClass = 'negative';
+            }
+            
             row.innerHTML = `
                 <td>${date}</td>
                 <td>$${summary.daily_budget}</td>
                 <td>$${summary.today_spent}</td>
-                <td>$${summary.remaining_amount}</td>
+                <td class="${remainingAmountClass}">$${summary.remaining_amount}</td>
             `;
             transactionList.appendChild(row);
 
@@ -138,7 +145,6 @@ function displayDailySummaries() {
     monthlyRemainingTotal.textContent = `當月每日剩餘總和：$${totalRemaining.toFixed(0)}`;
     monthlyRemainingTotal.style.display = 'inline-block';
 
-    // 新增的程式碼：根據 totalRemaining 的值添加或移除 negative 類別
     monthlyRemainingTotal.classList.remove('negative');
     if (totalRemaining < 0) {
         monthlyRemainingTotal.classList.add('negative');
